@@ -31,10 +31,10 @@ export default function DownloadButton({ data, filename, columnOrder }: Download
   );
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
       <button
         onClick={handleXLSX}
-        className="flex items-center gap-2.5 px-5 py-2 bg-surface hover:bg-surface-2 text-ink-1 font-semibold text-sm rounded-md border border-border hover:border-border-strong transition-all duration-150"
+        className="flex items-center justify-center gap-2.5 px-5 py-2 bg-surface hover:bg-surface-2 text-ink-1 font-semibold text-sm rounded-md border border-border hover:border-border-strong transition-all duration-150"
       >
         <FileSpreadsheet className="w-4 h-4" strokeWidth={2} />
         Download XLSX
@@ -42,7 +42,7 @@ export default function DownloadButton({ data, filename, columnOrder }: Download
 
       <button
         onClick={handleCSV}
-        className="flex items-center gap-2.5 px-5 py-2 bg-gold hover:bg-gold-bright text-black font-semibold text-sm rounded-md transition-colors duration-150"
+        className="flex items-center justify-center gap-2.5 px-5 py-2 bg-gold hover:bg-gold-bright text-black font-semibold text-sm rounded-md transition-colors duration-150"
       >
         <Download className="w-4 h-4" strokeWidth={2.5} />
         Download CSV

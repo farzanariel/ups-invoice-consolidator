@@ -35,7 +35,7 @@ export default function FileUploader({
     <div
       {...getRootProps()}
       className={`
-        relative rounded-xl p-10 text-center cursor-pointer
+        relative rounded-xl p-6 sm:p-10 text-center cursor-pointer
         border transition-all duration-200
         ${isDragActive
           ? 'border-gold bg-gold/5'

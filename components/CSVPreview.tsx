@@ -139,8 +139,9 @@ export default function CSVPreview({
   return (
     <div className="rounded-xl border border-border bg-surface overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-3.5 border-b border-border flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="px-4 sm:px-6 py-3 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+        {/* Title row */}
+        <div className="flex items-center gap-2 min-w-0">
           <span className="text-xs font-semibold text-ink-3 uppercase tracking-widest font-mono shrink-0">
             Data Preview
           </span>
@@ -159,22 +160,22 @@ export default function CSVPreview({
             </div>
           )}
           {isDraggable && (
-            <span className="text-xs text-ink-3 font-mono hidden sm:block">
+            <span className="text-xs text-ink-3 font-mono hidden md:block">
               drag to reorder · click to sort
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          {/* Search input */}
-          <div className="relative">
+        {/* Search + count row */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-ink-3 pointer-events-none" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search tracking #"
-              className="w-48 pl-7 pr-7 py-1.5 text-xs font-mono bg-surface-2 border border-border hover:border-border-strong focus:border-gold focus:outline-none rounded-md text-ink-1 placeholder:text-ink-3 transition-colors duration-150"
+              className="w-full sm:w-44 pl-7 pr-7 py-1.5 text-xs font-mono bg-surface-2 border border-border hover:border-border-strong focus:border-gold focus:outline-none rounded-md text-ink-1 placeholder:text-ink-3 transition-colors duration-150"
             />
             {search && (
               <button
@@ -186,7 +187,7 @@ export default function CSVPreview({
             )}
           </div>
 
-          <span className="text-xs text-ink-2 font-mono">
+          <span className="text-xs text-ink-2 font-mono shrink-0">
             {filteredData.length < sortedData.length
               ? `${filteredData.length.toLocaleString()} of ${sortedData.length.toLocaleString()}`
               : `${sortedData.length.toLocaleString()}`}{' '}
@@ -209,7 +210,7 @@ export default function CSVPreview({
                   onDrop={() => handleDrop(i)}
                   onDragEnd={handleDragEnd}
                   onClick={() => handleHeaderClick(header)}
-                  className={`group px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap font-mono select-none transition-all duration-100 border-r border-border ${
+                  className={`group px-3 sm:px-4 py-2.5 sm:py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap font-mono select-none transition-all duration-100 border-r border-border ${
                     isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'
                   } ${
                     dragOverIndex === i && dragSourceIndex !== i
@@ -240,7 +241,7 @@ export default function CSVPreview({
                 {headers.map((header, colIndex) => (
                   <td
                     key={`${startIndex + rowIndex}-${header}`}
-                    className={`px-4 py-2.5 text-xs whitespace-nowrap font-mono transition-all duration-100 ${
+                    className={`px-3 sm:px-4 py-2 sm:py-2.5 text-xs whitespace-nowrap font-mono transition-all duration-100 ${
                       sortColumn === header ? 'text-ink-1' : 'text-ink-2'
                     } ${colClass(colIndex)}`}
                   >
@@ -257,7 +258,7 @@ export default function CSVPreview({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="px-6 py-3 border-t border-border flex items-center justify-between bg-surface">
+        <div className="px-4 sm:px-6 py-3 border-t border-border flex items-center justify-between bg-surface">
           <button
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage === 1}

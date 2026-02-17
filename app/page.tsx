@@ -105,7 +105,7 @@ export default function Home() {
 
       {/* Header */}
       <header className="relative border-b border-border">
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 bg-[#351c15] rounded flex items-center justify-center">
               <Package2 className="w-4 h-4 text-gold" strokeWidth={2.5} />
@@ -121,15 +121,15 @@ export default function Home() {
       </header>
 
       {/* Main */}
-      <main className="relative max-w-6xl mx-auto px-6 py-16">
+      <main className="relative max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         {/* Upload state */}
         {!consolidatedData && (
           <div className="max-w-xl mx-auto">
-            <div className="mb-10 text-center">
-              <h1 className="text-5xl font-bold tracking-tight text-ink-1 leading-tight mb-3">
+            <div className="mb-8 sm:mb-10 text-center">
+              <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-ink-1 leading-tight mb-3">
                 UPS Invoice <span className="text-gold">Consolidator</span>
               </h1>
-              <p className="text-ink-2 text-lg leading-relaxed">
+              <p className="text-ink-2 text-base sm:text-lg leading-relaxed">
                 Merge duplicate tracking rows into clean, single-row records.
               </p>
             </div>
@@ -168,10 +168,10 @@ export default function Home() {
             onFilterClick={setActiveFilter}
           />
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <button
                 onClick={handleReset}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 hover:text-ink-1 border border-border hover:border-border-strong rounded-md transition-all duration-150"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 hover:text-ink-1 border border-border hover:border-border-strong rounded-md transition-all duration-150 w-full sm:w-auto justify-center sm:justify-start"
               >
                 <RefreshCw className="w-4 h-4" />
                 Process Another File
@@ -203,7 +203,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="relative border-t border-border mt-16">
-        <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
           <span className="text-xs text-ink-3 font-mono">UPS Invoice Consolidator</span>
           <span className="text-xs text-ink-3">No data is ever uploaded to a server</span>
         </div>

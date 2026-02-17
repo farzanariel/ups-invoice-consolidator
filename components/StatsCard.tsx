@@ -56,7 +56,7 @@ export default function StatsCard({ stats, activeFilter, onFilterClick }: StatsC
   return (
     <div className="rounded-xl border border-border bg-surface overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-3.5 border-b border-border flex items-center justify-between">
+      <div className="px-4 sm:px-6 py-3.5 border-b border-border flex items-center justify-between">
         <span className="text-xs font-semibold text-ink-3 uppercase tracking-widest font-mono">
           Processing Summary
         </span>
@@ -69,7 +69,7 @@ export default function StatsCard({ stats, activeFilter, onFilterClick }: StatsC
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-6 divide-y sm:divide-y-0 sm:divide-x divide-border">
+      <div className="grid grid-cols-2 sm:grid-cols-6 divide-border [&>*]:border-b [&>*]:border-border sm:[&>*]:border-b-0 [&>*:nth-child(odd)]:border-r [&>*:nth-child(odd)]:border-border sm:[&>*:nth-child(odd)]:border-r-0 sm:divide-x">
         {items.map((item, i) => {
           const isActive = activeFilter === item.filter && item.filter !== null;
           const isClickable = item.filter !== null;
@@ -81,7 +81,7 @@ export default function StatsCard({ stats, activeFilter, onFilterClick }: StatsC
                 if (!isClickable) return;
                 onFilterClick(isActive ? null : item.filter);
               }}
-              className={`px-4 py-4 transition-colors duration-150 ${
+              className={`px-4 py-3 sm:py-4 transition-colors duration-150 ${
                 isClickable
                   ? 'cursor-pointer hover:bg-surface-2'
                   : ''
