@@ -46,11 +46,10 @@ export default function StatsCard({ stats, activeFilter, onFilterClick }: StatsC
       filter: null,
     },
     {
-      label: 'Total Invoice',
+      label: 'Total Amount',
       value: `$${stats.totalNetAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       color: 'text-ink-1',
       filter: null,
-      textSize: 'text-xl',
     },
   ];
 
@@ -82,13 +81,13 @@ export default function StatsCard({ stats, activeFilter, onFilterClick }: StatsC
                 if (!isClickable) return;
                 onFilterClick(isActive ? null : item.filter);
               }}
-              className={`px-6 py-5 transition-colors duration-150 ${
+              className={`px-4 py-4 transition-colors duration-150 ${
                 isClickable
                   ? 'cursor-pointer hover:bg-surface-2'
                   : ''
               } ${isActive ? 'bg-surface-2 ring-1 ring-inset ring-danger/30' : ''}`}
             >
-              <p className={`${item.textSize ?? 'text-3xl'} font-bold font-mono tabular-nums ${item.color}`}>
+              <p className={`text-xl font-bold font-mono tabular-nums ${item.color}`}>
                 {item.value}
               </p>
               <p className="text-xs text-ink-3 mt-1.5 uppercase tracking-wider flex items-center gap-1.5">
