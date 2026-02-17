@@ -1,0 +1,204 @@
+import {
+  UPSInvoiceRow,
+  ConsolidatedRow,
+  ProcessingStats,
+  Charge,
+} from './types';
+import {
+  parseDimensions,
+  formatAmount,
+  getFirstNonEmpty,
+  shouldIncludeCharge,
+} from './utils';
+
+/**
+ * Group rows by tracking number
+ */
+function groupByTracking(rows: UPSInvoiceRow[]): Map<string, UPSInvoiceRow[]> {
+  const groups = new Map<string, UPSInvoiceRow[]>();
+
+  for (const row of rows) {
+    // Use Tracking Number, fallback to Lead Shipment Number
+    const trackingNum =
+      row['Tracking Number'] && row['Tracking Number'].trim() !== ''
+        ? row['Tracking Number']
+        : row['Lead Shipment Number'];
+
+    if (!trackingNum || trackingNum.trim() === '') {
+      continue; // Skip rows without tracking number
+    }
+
+    if (!groups.has(trackingNum)) {
+      groups.set(trackingNum, []);
+    }
+
+    groups.get(trackingNum)!.push(row);
+  }
+
+  return groups;
+}
+
+/**
+ * Main consolidation function
+ */
+export function consolidateRows(
+  rows: UPSInvoiceRow[]
+): {
+  consolidated: ConsolidatedRow[];
+  stats: ProcessingStats;
+} {
+  const stats: ProcessingStats = {
+    totalRows: rows.length,
+    uniqueTrackings: 0,
+    originalCharges: 0,
+    keptCharges: 0,
+    removedCharges: 0,
+    maxChargesPerTracking: 0,
+    status: 'processing',
+  };
+
+  try {
+    // Group rows by tracking number
+    const grouped = groupByTracking(rows);
+    stats.uniqueTrackings = grouped.size;
+
+    const consolidated: ConsolidatedRow[] = [];
+
+    // Process each tracking group
+    for (const [trackingNum, trackingRows] of grouped.entries()) {
+      // Count original charges
+      stats.originalCharges += trackingRows.length;
+
+      // Filter charges (keep only non-zero)
+      const filteredCharges = trackingRows.filter(shouldIncludeCharge);
+      stats.keptCharges += filteredCharges.length;
+      stats.removedCharges += trackingRows.length - filteredCharges.length;
+
+      // Track max charges per tracking
+      if (filteredCharges.length > stats.maxChargesPerTracking) {
+        stats.maxChargesPerTracking = filteredCharges.length;
+      }
+
+      // Extract base columns from first row
+      const firstRow = trackingRows[0];
+
+      // Parse dimensions
+      const dimensions = parseDimensions(firstRow['Detail Keyed Dim']);
+
+      // Calculate Net Total (sum of all Net Amount values)
+      const netTotal = trackingRows.reduce((sum, row) => {
+        const amount = parseFloat(row['Net Amount'] || '0');
+        return sum + amount;
+      }, 0);
+
+      // Build consolidated row with base columns
+      const consolidatedRow: ConsolidatedRow = {
+        'Account Number': getFirstNonEmpty(trackingRows, 'Account Number'),
+        'Invoice Date': getFirstNonEmpty(trackingRows, 'Invoice Date'),
+        'Invoice Number': getFirstNonEmpty(trackingRows, 'Invoice Number'),
+        'Tracking Number': trackingNum,
+        'Sender Postal': getFirstNonEmpty(trackingRows, 'Sender Postal'),
+        'Receiver Postal': getFirstNonEmpty(trackingRows, 'Receiver Postal', {
+          truncatePostal: true,
+        }),
+        'Billed Weight': getFirstNonEmpty(trackingRows, 'Billed Weight'),
+        'Entered Weight': getFirstNonEmpty(trackingRows, 'Entered Weight', {
+          skipZero: true,
+        }),
+        'Length': dimensions.length,
+        'Width': dimensions.width,
+        'Height': dimensions.height,
+        'Net Total': formatAmount(netTotal),
+      };
+
+      // Add filtered charges with dynamic column naming
+      filteredCharges.forEach((chargeRow, index) => {
+        const suffix = index === 0 ? '' : `.${index + 1}`;
+
+        consolidatedRow[`Charge Description${suffix}`] =
+          chargeRow['Charge Description'];
+        consolidatedRow[`Incentive Amount${suffix}`] = formatAmount(
+          chargeRow['Incentive Amount']
+        );
+        consolidatedRow[`Net Amount${suffix}`] = formatAmount(
+          chargeRow['Net Amount']
+        );
+      });
+
+      consolidated.push(consolidatedRow);
+    }
+
+    stats.status = 'success';
+
+    return { consolidated, stats };
+  } catch (error) {
+    stats.status = 'error';
+    stats.errorMessage =
+      error instanceof Error ? error.message : 'Unknown error occurred';
+
+    return { consolidated: [], stats };
+  }
+}
+
+/**
+ * Get all unique column headers from consolidated data
+ */
+export function getConsolidatedHeaders(data: ConsolidatedRow[]): string[] {
+  const baseHeaders = [
+    'Account Number',
+    'Invoice Date',
+    'Invoice Number',
+    'Tracking Number',
+    'Sender Postal',
+    'Receiver Postal',
+    'Billed Weight',
+    'Entered Weight',
+    'Length',
+    'Width',
+    'Height',
+    'Net Total',
+  ];
+
+  if (data.length === 0) {
+    return baseHeaders;
+  }
+
+  // Collect all charge columns
+  const chargeColumns = new Set<string>();
+  data.forEach((row) => {
+    Object.keys(row).forEach((key) => {
+      if (
+        key.startsWith('Charge Description') ||
+        key.startsWith('Incentive Amount') ||
+        key.startsWith('Net Amount')
+      ) {
+        chargeColumns.add(key);
+      }
+    });
+  });
+
+  // Sort charge columns to ensure proper ordering
+  const sortedChargeColumns = Array.from(chargeColumns).sort((a, b) => {
+    // Extract suffix number (e.g., ".2" from "Charge Description.2")
+    const getNum = (str: string) => {
+      const match = str.match(/\.(\d+)$/);
+      return match ? parseInt(match[1]) : 0;
+    };
+
+    const numA = getNum(a);
+    const numB = getNum(b);
+
+    if (numA !== numB) {
+      return numA - numB;
+    }
+
+    // If same suffix, sort by column type
+    const order = ['Charge Description', 'Incentive Amount', 'Net Amount'];
+    const typeA = order.findIndex((t) => a.startsWith(t));
+    const typeB = order.findIndex((t) => b.startsWith(t));
+
+    return typeA - typeB;
+  });
+
+  return [...baseHeaders, ...sortedChargeColumns];
+}
