@@ -45,7 +45,7 @@ export function parseCSV(
             resolve({ data: results.data });
           }
         },
-        error: (error) => {
+        error: (error: Error) => {
           resolve({
             data: [],
             error: `Failed to parse CSV: ${error.message}`,
@@ -65,13 +65,13 @@ export function parseCSV(
 /**
  * Export consolidated data to CSV string
  */
-export function exportCSV(data: ConsolidatedRow[]): string {
+export function exportCSV(data: ConsolidatedRow[], columnOrder?: string[]): string {
   if (data.length === 0) {
     return '';
   }
 
-  // Get headers in correct order
-  const headers = getConsolidatedHeaders(data);
+  // Use provided column order, or fall back to default
+  const headers = columnOrder ?? getConsolidatedHeaders(data);
 
   // Convert data to array format with headers
   const csv = Papa.unparse({
