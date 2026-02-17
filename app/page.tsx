@@ -205,7 +205,14 @@ export default function Home() {
       <footer className="relative border-t border-border mt-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
           <span className="text-xs text-ink-3 font-mono">UPS Invoice Consolidator</span>
-          <span className="text-xs text-ink-3">No data is ever uploaded to a server</span>
+          <div className="flex items-center gap-4">
+            {process.env.NEXT_PUBLIC_LAST_UPDATED && (
+              <span className="text-xs text-ink-3 font-mono hidden sm:block">
+                updated {new Date(process.env.NEXT_PUBLIC_LAST_UPDATED).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </span>
+            )}
+            <span className="text-xs text-ink-3">No data is ever uploaded to a server</span>
+          </div>
         </div>
       </footer>
     </div>
