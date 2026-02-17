@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { getConsolidatedHeaders } from '@/lib/consolidation';
 
@@ -9,6 +9,8 @@ interface CSVPreviewProps {
   rowsPerPage?: number;
   filterLabel?: string;
   onClearFilter?: () => void;
+  columnOrder?: string[];
+  onColumnOrderChange?: (order: string[]) => void;
 }
 
 export default function CSVPreview({
@@ -16,21 +18,26 @@ export default function CSVPreview({
   rowsPerPage = 50,
   filterLabel,
   onClearFilter,
+  columnOrder,
+  onColumnOrderChange,
 }: CSVPreviewProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [dragSourceIndex, setDragSourceIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  // Ref mirrors dragSourceIndex for synchronous reads inside drop handler
+  const dragSourceRef = useRef<number | null>(null);
 
-  // Reset to page 1 whenever data changes
   useEffect(() => {
     setCurrentPage(1);
   }, [data]);
 
   if (!data || data.length === 0) return null;
 
-  // If filter is active, use all keys from all rows (raw headers).
-  // For the default consolidated view, use getConsolidatedHeaders for correct ordering.
   const headers = filterLabel
     ? Array.from(new Set(data.flatMap((row) => Object.keys(row))))
-    : getConsolidatedHeaders(data as Parameters<typeof getConsolidatedHeaders>[0]);
+    : (columnOrder ?? getConsolidatedHeaders(data as Parameters<typeof getConsolidatedHeaders>[0]));
+
+  const isDraggable = !filterLabel && !!onColumnOrderChange;
 
   const totalPages = Math.ceil(data.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
@@ -39,6 +46,44 @@ export default function CSVPreview({
 
   const goToPage = (page: number) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const handleDragStart = (index: number) => {
+    dragSourceRef.current = index;
+    setDragSourceIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDrop = (dropIndex: number) => {
+    const src = dragSourceRef.current;
+    if (src === null || src === dropIndex) {
+      setDragSourceIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    const newOrder = [...headers];
+    const [moved] = newOrder.splice(src, 1);
+    newOrder.splice(dropIndex, 0, moved);
+    onColumnOrderChange!(newOrder);
+    dragSourceRef.current = null;
+    setDragSourceIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    dragSourceRef.current = null;
+    setDragSourceIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const colClass = (i: number) => {
+    if (dragSourceIndex === i) return 'opacity-30';
+    if (dragOverIndex === i && dragSourceIndex !== i) return 'bg-gold/10';
+    return '';
   };
 
   return (
@@ -63,6 +108,11 @@ export default function CSVPreview({
               )}
             </div>
           )}
+          {isDraggable && (
+            <span className="text-xs text-ink-3 font-mono">
+              drag columns to reorder
+            </span>
+          )}
         </div>
         <span className="text-xs text-ink-2 font-mono">
           {(startIndex + 1).toLocaleString()}–{endIndex.toLocaleString()} of{' '}
@@ -75,10 +125,23 @@ export default function CSVPreview({
         <table className="min-w-full">
           <thead>
             <tr className="border-b border-border bg-surface">
-              {headers.map((header) => (
+              {headers.map((header, i) => (
                 <th
                   key={header}
-                  className="px-4 py-3 text-left text-xs font-medium text-ink-3 uppercase tracking-wider whitespace-nowrap font-mono"
+                  draggable={isDraggable}
+                  onDragStart={() => handleDragStart(i)}
+                  onDragOver={(e) => handleDragOver(e, i)}
+                  onDrop={() => handleDrop(i)}
+                  onDragEnd={handleDragEnd}
+                  className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap font-mono select-none transition-all duration-100 border-r border-border ${
+                    isDraggable ? 'cursor-grab active:cursor-grabbing' : ''
+                  } ${
+                    dragOverIndex === i && dragSourceIndex !== i
+                      ? 'text-gold bg-gold/10'
+                      : dragSourceIndex === i
+                      ? 'text-ink-3 opacity-30'
+                      : 'text-ink-3 hover:bg-surface-2 hover:text-ink-2'
+                  }`}
                 >
                   {header}
                 </th>
@@ -89,14 +152,14 @@ export default function CSVPreview({
             {currentData.map((row, rowIndex) => (
               <tr
                 key={startIndex + rowIndex}
-                className={`border-b border-border/50 hover:bg-surface-2 transition-colors duration-100 ${
+                className={`border-b border-border/50 transition-colors duration-100 ${
                   rowIndex % 2 === 0 ? 'bg-[#0d0d0d]' : 'bg-surface'
-                }`}
+                } ${dragSourceIndex === null ? 'hover:bg-surface-2' : ''}`}
               >
-                {headers.map((header) => (
+                {headers.map((header, colIndex) => (
                   <td
                     key={`${startIndex + rowIndex}-${header}`}
-                    className="px-4 py-2.5 text-xs text-ink-2 whitespace-nowrap font-mono"
+                    className={`px-4 py-2.5 text-xs text-ink-2 whitespace-nowrap font-mono transition-all duration-100 ${colClass(colIndex)}`}
                   >
                     {row[header] || (
                       <span className="text-ink-3">—</span>

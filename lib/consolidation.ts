@@ -87,8 +87,9 @@ export function consolidateRows(
       // Extract base columns from first row
       const firstRow = trackingRows[0];
 
-      // Parse dimensions
-      const dimensions = parseDimensions(firstRow['Detail Keyed Dim']);
+      // Parse dimensions — scan all rows to find the first one with dimension data
+      const dimString = getFirstNonEmpty(trackingRows, 'Detail Keyed Dim');
+      const dimensions = parseDimensions(dimString);
 
       // Calculate Net Total (sum of all Net Amount values)
       const netTotal = trackingRows.reduce((sum, row) => {

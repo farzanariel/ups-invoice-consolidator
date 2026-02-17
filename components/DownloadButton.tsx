@@ -7,12 +7,13 @@ import { exportCSV, downloadCSV } from '@/lib/csv-parser';
 interface DownloadButtonProps {
   data: ConsolidatedRow[];
   filename: string;
+  columnOrder: string[];
 }
 
-export default function DownloadButton({ data, filename }: DownloadButtonProps) {
+export default function DownloadButton({ data, filename, columnOrder }: DownloadButtonProps) {
   const handleDownload = () => {
     if (!data || data.length === 0) return;
-    const csv = exportCSV(data);
+    const csv = exportCSV(data, columnOrder);
     downloadCSV(csv, filename);
   };
 

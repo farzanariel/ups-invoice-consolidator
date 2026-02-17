@@ -9,7 +9,7 @@ import CSVPreview from '@/components/CSVPreview';
 import DownloadButton from '@/components/DownloadButton';
 import { parseCSV } from '@/lib/csv-parser';
 import { validateCSV } from '@/lib/validation';
-import { consolidateRows } from '@/lib/consolidation';
+import { consolidateRows, getConsolidatedHeaders } from '@/lib/consolidation';
 import { getConsolidatedFilename } from '@/lib/utils';
 import type {
   UPSInvoiceRow,
@@ -23,6 +23,7 @@ export default function Home() {
   const [consolidatedData, setConsolidatedData] = useState<ConsolidatedRow[] | null>(null);
   const [removedRows, setRemovedRows] = useState<UPSInvoiceRow[]>([]);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [columnOrder, setColumnOrder] = useState<string[]>([]);
   const [stats, setStats] = useState<ProcessingStats | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
@@ -71,6 +72,7 @@ export default function Home() {
 
       setConsolidatedData(consolidated);
       setRemovedRows(removed);
+      setColumnOrder(getConsolidatedHeaders(consolidated));
       setStats(processingStats);
       setIsProcessing(false);
     } catch (err) {
@@ -170,6 +172,7 @@ export default function Home() {
               <DownloadButton
                 data={consolidatedData}
                 filename={getConsolidatedFilename(originalFilename)}
+                columnOrder={columnOrder}
               />
               <button
                 onClick={handleReset}
@@ -191,6 +194,8 @@ export default function Home() {
               data={activeFilter === 'charges-removed' ? removedRows : consolidatedData}
               filterLabel={activeFilter === 'charges-removed' ? 'Charges Removed' : undefined}
               onClearFilter={activeFilter ? () => setActiveFilter(null) : undefined}
+              columnOrder={columnOrder}
+              onColumnOrderChange={setColumnOrder}
             />
           </div>
         )}
