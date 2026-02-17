@@ -50,6 +50,7 @@ export default function StatsCard({ stats, activeFilter, onFilterClick }: StatsC
       value: `$${stats.totalNetAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       color: 'text-ink-1',
       filter: null,
+      textSize: 'text-xl',
     },
   ];
 
@@ -87,14 +88,14 @@ export default function StatsCard({ stats, activeFilter, onFilterClick }: StatsC
                   : ''
               } ${isActive ? 'bg-surface-2 ring-1 ring-inset ring-danger/30' : ''}`}
             >
-              <p className={`text-3xl font-bold font-mono tabular-nums ${item.color}`}>
+              <p className={`${item.textSize ?? 'text-3xl'} font-bold font-mono tabular-nums ${item.color}`}>
                 {item.value}
               </p>
               <p className="text-xs text-ink-3 mt-1.5 uppercase tracking-wider flex items-center gap-1.5">
                 {item.label}
-                {isClickable && (
-                  <span className={`text-[10px] normal-case tracking-normal font-sans ${isActive ? 'text-danger' : 'text-ink-3'}`}>
-                    {isActive ? '· clear' : '· view'}
+                {isActive && (
+                  <span className="text-[10px] normal-case tracking-normal font-sans text-danger">
+                    · clear
                   </span>
                 )}
               </p>
