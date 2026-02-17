@@ -168,12 +168,7 @@ export default function Home() {
             onFilterClick={setActiveFilter}
           />
 
-            <div className="flex flex-wrap gap-3 items-center">
-              <DownloadButton
-                data={consolidatedData}
-                filename={getConsolidatedFilename(originalFilename)}
-                columnOrder={columnOrder}
-              />
+            <div className="flex items-center justify-between">
               <button
                 onClick={handleReset}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 hover:text-ink-1 border border-border hover:border-border-strong rounded-md transition-all duration-150"
@@ -181,6 +176,11 @@ export default function Home() {
                 <RefreshCw className="w-4 h-4" />
                 Process Another File
               </button>
+              <DownloadButton
+                data={consolidatedData}
+                filename={getConsolidatedFilename(originalFilename)}
+                columnOrder={columnOrder}
+              />
             </div>
 
             {errors.length > 0 && (
