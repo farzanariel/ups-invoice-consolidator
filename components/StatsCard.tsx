@@ -1,80 +1,103 @@
 'use client';
 
 import { ProcessingStats } from '@/lib/types';
-import {
-  FileText,
-  Package,
-  CheckCircle,
-  XCircle,
-  TrendingUp,
-} from 'lucide-react';
 
 interface StatsCardProps {
   stats: ProcessingStats;
+  activeFilter: string | null;
+  onFilterClick: (filter: string | null) => void;
 }
 
-export default function StatsCard({ stats }: StatsCardProps) {
-  const statItems = [
+export default function StatsCard({ stats, activeFilter, onFilterClick }: StatsCardProps) {
+  const reductionPct =
+    stats.totalRows > 0
+      ? Math.round((1 - stats.uniqueTrackings / stats.totalRows) * 100)
+      : 0;
+
+  const items = [
     {
       label: 'Original Rows',
       value: stats.totalRows.toLocaleString(),
-      icon: FileText,
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
+      color: 'text-ink-2',
+      filter: null,
     },
     {
-      label: 'Consolidated Rows',
+      label: 'Consolidated',
       value: stats.uniqueTrackings.toLocaleString(),
-      icon: Package,
-      color: 'text-green-600',
-      bg: 'bg-green-50',
+      color: 'text-success',
+      filter: null,
     },
     {
       label: 'Charges Kept',
       value: stats.keptCharges.toLocaleString(),
-      icon: CheckCircle,
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-50',
+      color: 'text-gold',
+      filter: null,
     },
     {
       label: 'Charges Removed',
       value: stats.removedCharges.toLocaleString(),
-      icon: XCircle,
-      color: 'text-red-600',
-      bg: 'bg-red-50',
+      color: 'text-danger',
+      filter: 'charges-removed',
     },
     {
-      label: 'Max Charges/Tracking',
+      label: 'Max / Tracking',
       value: stats.maxChargesPerTracking.toString(),
-      icon: TrendingUp,
-      color: 'text-purple-600',
-      bg: 'bg-purple-50',
+      color: 'text-ink-2',
+      filter: null,
+    },
+    {
+      label: 'Total Invoice',
+      value: `$${stats.totalNetAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      color: 'text-ink-1',
+      filter: null,
     },
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="bg-ups-brown text-white px-6 py-4">
-        <h2 className="text-xl font-semibold">Processing Summary</h2>
+    <div className="rounded-xl border border-border bg-surface overflow-hidden">
+      {/* Header */}
+      <div className="px-6 py-3.5 border-b border-border flex items-center justify-between">
+        <span className="text-xs font-semibold text-ink-3 uppercase tracking-widest font-mono">
+          Processing Summary
+        </span>
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-success" />
+          <span className="text-xs text-ink-2 font-mono">
+            {reductionPct}% row reduction
+          </span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 p-6">
-        {statItems.map((item, index) => {
-          const Icon = item.icon;
+      {/* Stats grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-6 divide-y sm:divide-y-0 sm:divide-x divide-border">
+        {items.map((item, i) => {
+          const isActive = activeFilter === item.filter && item.filter !== null;
+          const isClickable = item.filter !== null;
+
           return (
             <div
-              key={index}
-              className="flex items-start gap-3 p-4 rounded-lg border border-gray-200 hover:border-ups-gold transition-colors"
+              key={i}
+              onClick={() => {
+                if (!isClickable) return;
+                onFilterClick(isActive ? null : item.filter);
+              }}
+              className={`px-6 py-5 transition-colors duration-150 ${
+                isClickable
+                  ? 'cursor-pointer hover:bg-surface-2'
+                  : ''
+              } ${isActive ? 'bg-surface-2 ring-1 ring-inset ring-danger/30' : ''}`}
             >
-              <div className={`p-2 rounded-lg ${item.bg}`}>
-                <Icon className={`w-5 h-5 ${item.color}`} />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">
-                  {item.value}
-                </p>
-                <p className="text-xs text-gray-600 mt-1">{item.label}</p>
-              </div>
+              <p className={`text-3xl font-bold font-mono tabular-nums ${item.color}`}>
+                {item.value}
+              </p>
+              <p className="text-xs text-ink-3 mt-1.5 uppercase tracking-wider flex items-center gap-1.5">
+                {item.label}
+                {isClickable && (
+                  <span className={`text-[10px] normal-case tracking-normal font-sans ${isActive ? 'text-danger' : 'text-ink-3'}`}>
+                    {isActive ? '· clear' : '· view'}
+                  </span>
+                )}
+              </p>
             </div>
           );
         })}

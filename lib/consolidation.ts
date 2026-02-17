@@ -45,6 +45,7 @@ export function consolidateRows(
   rows: UPSInvoiceRow[]
 ): {
   consolidated: ConsolidatedRow[];
+  removedRows: UPSInvoiceRow[];
   stats: ProcessingStats;
 } {
   const stats: ProcessingStats = {
@@ -54,6 +55,7 @@ export function consolidateRows(
     keptCharges: 0,
     removedCharges: 0,
     maxChargesPerTracking: 0,
+    totalNetAmount: 0,
     status: 'processing',
   };
 
@@ -63,6 +65,7 @@ export function consolidateRows(
     stats.uniqueTrackings = grouped.size;
 
     const consolidated: ConsolidatedRow[] = [];
+    const removedRows: UPSInvoiceRow[] = [];
 
     // Process each tracking group
     for (const [trackingNum, trackingRows] of grouped.entries()) {
@@ -71,8 +74,10 @@ export function consolidateRows(
 
       // Filter charges (keep only non-zero)
       const filteredCharges = trackingRows.filter(shouldIncludeCharge);
+      const removedCharges = trackingRows.filter((r) => !shouldIncludeCharge(r));
       stats.keptCharges += filteredCharges.length;
-      stats.removedCharges += trackingRows.length - filteredCharges.length;
+      stats.removedCharges += removedCharges.length;
+      removedRows.push(...removedCharges);
 
       // Track max charges per tracking
       if (filteredCharges.length > stats.maxChargesPerTracking) {
@@ -111,6 +116,8 @@ export function consolidateRows(
         'Net Total': formatAmount(netTotal),
       };
 
+      stats.totalNetAmount += netTotal;
+
       // Add filtered charges with dynamic column naming
       filteredCharges.forEach((chargeRow, index) => {
         const suffix = index === 0 ? '' : `.${index + 1}`;
@@ -130,13 +137,13 @@ export function consolidateRows(
 
     stats.status = 'success';
 
-    return { consolidated, stats };
+    return { consolidated, removedRows, stats };
   } catch (error) {
     stats.status = 'error';
     stats.errorMessage =
       error instanceof Error ? error.message : 'Unknown error occurred';
 
-    return { consolidated: [], stats };
+    return { consolidated: [], removedRows: [], stats };
   }
 }
 

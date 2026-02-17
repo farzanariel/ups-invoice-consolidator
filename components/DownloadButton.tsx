@@ -9,32 +9,24 @@ interface DownloadButtonProps {
   filename: string;
 }
 
-export default function DownloadButton({
-  data,
-  filename,
-}: DownloadButtonProps) {
+export default function DownloadButton({ data, filename }: DownloadButtonProps) {
   const handleDownload = () => {
-    if (!data || data.length === 0) {
-      return;
-    }
-
+    if (!data || data.length === 0) return;
     const csv = exportCSV(data);
     downloadCSV(csv, filename);
   };
 
-  if (!data || data.length === 0) {
-    return null;
-  }
+  if (!data || data.length === 0) return null;
 
   return (
     <button
       onClick={handleDownload}
-      className="flex items-center gap-3 px-6 py-3 bg-ups-gold hover:bg-ups-yellow text-ups-brown font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
+      className="flex items-center gap-2.5 px-5 py-2 bg-gold hover:bg-gold-bright text-black font-semibold text-sm rounded-md transition-colors duration-150"
     >
-      <Download className="w-5 h-5" />
-      Download Consolidated CSV
-      <span className="ml-2 px-2 py-1 bg-ups-brown/10 rounded text-sm">
-        {data.length} rows
+      <Download className="w-4 h-4" strokeWidth={2.5} />
+      Download CSV
+      <span className="ml-1 px-1.5 py-0.5 bg-black/15 rounded text-xs font-mono">
+        {data.length.toLocaleString()} rows
       </span>
     </button>
   );

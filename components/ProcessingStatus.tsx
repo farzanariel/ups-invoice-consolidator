@@ -7,12 +7,19 @@ interface ProcessingStatusProps {
 }
 
 export default function ProcessingStatus({
-  message = 'Processing...',
+  message = 'Processing…',
 }: ProcessingStatusProps) {
   return (
-    <div className="flex items-center justify-center gap-3 p-6 bg-white rounded-lg shadow-md">
-      <Loader2 className="w-6 h-6 text-ups-gold animate-spin" />
-      <p className="text-lg font-medium text-gray-700">{message}</p>
+    <div className="rounded-xl border border-border bg-surface px-5 py-4 flex items-center gap-4">
+      <div className="w-9 h-9 bg-gold/10 rounded-lg flex items-center justify-center flex-shrink-0">
+        <Loader2 className="w-4.5 h-4.5 text-gold animate-spin" />
+      </div>
+      <div>
+        <p className="text-sm font-medium text-ink-1">{message}</p>
+        <p className="text-xs text-ink-3 mt-0.5 font-mono">
+          This may take a moment for large files
+        </p>
+      </div>
     </div>
   );
 }

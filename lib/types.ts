@@ -41,6 +41,7 @@ export interface ProcessingStats {
   keptCharges: number;
   removedCharges: number;
   maxChargesPerTracking: number;
+  totalNetAmount: number;
   status: 'idle' | 'processing' | 'success' | 'error';
   errorMessage?: string;
 }

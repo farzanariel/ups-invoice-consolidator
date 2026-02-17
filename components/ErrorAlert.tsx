@@ -8,52 +8,40 @@ interface ErrorAlertProps {
   onDismiss?: () => void;
 }
 
-export default function ErrorAlert({
-  type,
-  messages,
-  onDismiss,
-}: ErrorAlertProps) {
-  if (!messages || messages.length === 0) {
-    return null;
-  }
+export default function ErrorAlert({ type, messages, onDismiss }: ErrorAlertProps) {
+  if (!messages || messages.length === 0) return null;
 
   const isError = type === 'error';
 
   return (
     <div
-      className={`rounded-lg p-4 ${
+      className={`rounded-xl border p-4 ${
         isError
-          ? 'bg-red-50 border border-red-200'
-          : 'bg-yellow-50 border border-yellow-200'
+          ? 'border-danger/30 bg-[rgba(248,113,113,0.05)]'
+          : 'border-gold/30 bg-[rgba(255,181,0,0.05)]'
       }`}
     >
       <div className="flex items-start gap-3">
-        <div className="flex-shrink-0">
+        <div
+          className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
+            isError ? 'bg-danger/10' : 'bg-gold/10'
+          }`}
+        >
           {isError ? (
-            <AlertCircle className="w-5 h-5 text-red-600" />
+            <AlertCircle className="w-4 h-4 text-danger" />
           ) : (
-            <AlertTriangle className="w-5 h-5 text-yellow-600" />
+            <AlertTriangle className="w-4 h-4 text-gold" />
           )}
         </div>
 
-        <div className="flex-1">
-          <h3
-            className={`text-sm font-semibold ${
-              isError ? 'text-red-800' : 'text-yellow-800'
-            }`}
-          >
+        <div className="flex-1 min-w-0">
+          <h3 className={`text-sm font-semibold ${isError ? 'text-danger' : 'text-gold'}`}>
             {isError ? 'Error' : 'Warning'}
           </h3>
-
-          <div className="mt-2 space-y-1">
-            {messages.map((message, index) => (
-              <p
-                key={index}
-                className={`text-sm ${
-                  isError ? 'text-red-700' : 'text-yellow-700'
-                }`}
-              >
-                {message}
+          <div className="mt-1.5 space-y-1">
+            {messages.map((msg, i) => (
+              <p key={i} className="text-sm text-ink-2">
+                {msg}
               </p>
             ))}
           </div>
@@ -62,13 +50,9 @@ export default function ErrorAlert({
         {onDismiss && (
           <button
             onClick={onDismiss}
-            className={`flex-shrink-0 p-1 rounded-md hover:bg-opacity-20 transition-colors ${
-              isError
-                ? 'text-red-600 hover:bg-red-600'
-                : 'text-yellow-600 hover:bg-yellow-600'
-            }`}
+            className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-md text-ink-3 hover:text-ink-2 hover:bg-surface-3 transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         )}
       </div>

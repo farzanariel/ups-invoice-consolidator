@@ -16,15 +16,13 @@ import type {
   ConsolidatedRow,
   ProcessingStats,
 } from '@/lib/types';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Package2 } from 'lucide-react';
 
 export default function Home() {
-  const [originalData, setOriginalData] = useState<UPSInvoiceRow[] | null>(
-    null
-  );
-  const [consolidatedData, setConsolidatedData] = useState<
-    ConsolidatedRow[] | null
-  >(null);
+  const [originalData, setOriginalData] = useState<UPSInvoiceRow[] | null>(null);
+  const [consolidatedData, setConsolidatedData] = useState<ConsolidatedRow[] | null>(null);
+  const [removedRows, setRemovedRows] = useState<UPSInvoiceRow[]>([]);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [stats, setStats] = useState<ProcessingStats | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
@@ -32,7 +30,6 @@ export default function Home() {
   const [originalFilename, setOriginalFilename] = useState<string>('');
 
   const handleFileUpload = async (file: File) => {
-    // Reset state
     setErrors([]);
     setWarnings([]);
     setConsolidatedData(null);
@@ -41,7 +38,6 @@ export default function Home() {
     setOriginalFilename(file.name);
 
     try {
-      // Parse CSV
       const { data, error } = await parseCSV(file);
 
       if (error) {
@@ -52,7 +48,6 @@ export default function Home() {
 
       setOriginalData(data);
 
-      // Validate CSV
       const validation = validateCSV(data);
 
       if (!validation.valid) {
@@ -66,25 +61,20 @@ export default function Home() {
         setWarnings(validation.warnings);
       }
 
-      // Consolidate rows
-      const { consolidated, stats: processingStats } = consolidateRows(data);
+      const { consolidated, removedRows: removed, stats: processingStats } = consolidateRows(data);
 
       if (processingStats.status === 'error') {
-        setErrors([
-          processingStats.errorMessage || 'An error occurred during processing',
-        ]);
+        setErrors([processingStats.errorMessage || 'An error occurred during processing']);
         setIsProcessing(false);
         return;
       }
 
-      // Set results
       setConsolidatedData(consolidated);
+      setRemovedRows(removed);
       setStats(processingStats);
       setIsProcessing(false);
     } catch (err) {
-      setErrors([
-        err instanceof Error ? err.message : 'An unexpected error occurred',
-      ]);
+      setErrors([err instanceof Error ? err.message : 'An unexpected error occurred']);
       setIsProcessing(false);
     }
   };
@@ -92,6 +82,8 @@ export default function Home() {
   const handleReset = () => {
     setOriginalData(null);
     setConsolidatedData(null);
+    setRemovedRows([]);
+    setActiveFilter(null);
     setStats(null);
     setErrors([]);
     setWarnings([]);
@@ -99,85 +91,116 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-[#0a0a0a] text-ink-1">
+      {/* Dot grid background */}
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle, #1c1c1c 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
+        }}
+      />
+
       {/* Header */}
-      <header className="bg-ups-brown text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold">UPS Invoice Consolidator</h1>
-          <p className="text-ups-gold mt-2">
-            Consolidate multiple invoice rows per tracking number into a single
-            row
-          </p>
+      <header className="relative border-b border-border">
+        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 bg-[#351c15] rounded flex items-center justify-center">
+              <Package2 className="w-4 h-4 text-gold" strokeWidth={2.5} />
+            </div>
+            <span className="font-semibold text-ink-1 tracking-tight text-sm">
+              Invoice Consolidator
+            </span>
+          </div>
+          <span className="text-xs text-ink-3 font-mono hidden sm:block">
+            Processing happens entirely in your browser
+          </span>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
-          {/* File Upload */}
-          {!consolidatedData && (
+      {/* Main */}
+      <main className="relative max-w-6xl mx-auto px-6 py-16">
+        {/* Upload state */}
+        {!consolidatedData && (
+          <div className="max-w-xl mx-auto">
+            <div className="mb-10 text-center">
+              <h1 className="text-5xl font-bold tracking-tight text-ink-1 leading-tight mb-3">
+                UPS Invoice <span className="text-gold">Consolidator</span>
+              </h1>
+              <p className="text-ink-2 text-lg leading-relaxed">
+                Merge duplicate tracking rows into clean, single-row records.
+              </p>
+            </div>
+
             <FileUploader
               onFileSelect={handleFileUpload}
               isProcessing={isProcessing}
             />
-          )}
 
-          {/* Errors */}
-          {errors.length > 0 && (
-            <ErrorAlert
-              type="error"
-              messages={errors}
-              onDismiss={() => setErrors([])}
-            />
-          )}
-
-          {/* Warnings */}
-          {warnings.length > 0 && (
-            <ErrorAlert
-              type="warning"
-              messages={warnings}
-              onDismiss={() => setWarnings([])}
-            />
-          )}
-
-          {/* Processing Status */}
-          {isProcessing && <ProcessingStatus message="Processing your CSV..." />}
-
-          {/* Results */}
-          {consolidatedData && stats && (
-            <>
-              {/* Stats Card */}
-              <StatsCard stats={stats} />
-
-              {/* Action Buttons */}
-              <div className="flex gap-4 items-center">
-                <DownloadButton
-                  data={consolidatedData}
-                  filename={getConsolidatedFilename(originalFilename)}
-                />
-
-                <button
-                  onClick={handleReset}
-                  className="flex items-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg shadow-md border border-gray-300 hover:border-ups-gold transition-all duration-200"
-                >
-                  <RefreshCw className="w-5 h-5" />
-                  Process Another File
-                </button>
+            {isProcessing && (
+              <div className="mt-4">
+                <ProcessingStatus message="Processing your CSV..." />
               </div>
+            )}
 
-              {/* CSV Preview */}
-              <CSVPreview data={consolidatedData} />
-            </>
-          )}
-        </div>
+            {errors.length > 0 && (
+              <div className="mt-4">
+                <ErrorAlert type="error" messages={errors} onDismiss={() => setErrors([])} />
+              </div>
+            )}
+
+            {warnings.length > 0 && (
+              <div className="mt-4">
+                <ErrorAlert type="warning" messages={warnings} onDismiss={() => setWarnings([])} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Results state */}
+        {consolidatedData && stats && (
+          <div className="space-y-5">
+            <StatsCard
+            stats={stats}
+            activeFilter={activeFilter}
+            onFilterClick={setActiveFilter}
+          />
+
+            <div className="flex flex-wrap gap-3 items-center">
+              <DownloadButton
+                data={consolidatedData}
+                filename={getConsolidatedFilename(originalFilename)}
+              />
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 hover:text-ink-1 border border-border hover:border-border-strong rounded-md transition-all duration-150"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Process Another File
+              </button>
+            </div>
+
+            {errors.length > 0 && (
+              <ErrorAlert type="error" messages={errors} onDismiss={() => setErrors([])} />
+            )}
+            {warnings.length > 0 && (
+              <ErrorAlert type="warning" messages={warnings} onDismiss={() => setWarnings([])} />
+            )}
+
+            <CSVPreview
+              data={activeFilter === 'charges-removed' ? removedRows : consolidatedData}
+              filterLabel={activeFilter === 'charges-removed' ? 'Charges Removed' : undefined}
+              onClearFilter={activeFilter ? () => setActiveFilter(null) : undefined}
+            />
+          </div>
+        )}
       </main>
 
       {/* Footer */}
-      <footer className="mt-16 bg-ups-brown text-white py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-sm text-gray-300">
-            UPS Invoice Consolidator - All processing happens in your browser
-          </p>
+      <footer className="relative border-t border-border mt-16">
+        <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+          <span className="text-xs text-ink-3 font-mono">UPS Invoice Consolidator</span>
+          <span className="text-xs text-ink-3">No data is ever uploaded to a server</span>
         </div>
       </footer>
     </div>
