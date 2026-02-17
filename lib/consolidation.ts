@@ -16,6 +16,7 @@ import {
  */
 function groupByTracking(rows: UPSInvoiceRow[]): Map<string, UPSInvoiceRow[]> {
   const groups = new Map<string, UPSInvoiceRow[]>();
+  let noTrackingIdx = 0;
 
   for (const row of rows) {
     // Use Tracking Number, fallback to Lead Shipment Number
@@ -24,15 +25,17 @@ function groupByTracking(rows: UPSInvoiceRow[]): Map<string, UPSInvoiceRow[]> {
         ? row['Tracking Number']
         : row['Lead Shipment Number'];
 
-    if (!trackingNum || trackingNum.trim() === '') {
-      continue; // Skip rows without tracking number
+    // No tracking number — give it a unique internal key so it still gets output
+    const key =
+      !trackingNum || trackingNum.trim() === ''
+        ? `__notracking_${noTrackingIdx++}`
+        : trackingNum;
+
+    if (!groups.has(key)) {
+      groups.set(key, []);
     }
 
-    if (!groups.has(trackingNum)) {
-      groups.set(trackingNum, []);
-    }
-
-    groups.get(trackingNum)!.push(row);
+    groups.get(key)!.push(row);
   }
 
   return groups;
@@ -62,7 +65,7 @@ export function consolidateRows(
   try {
     // Group rows by tracking number
     const grouped = groupByTracking(rows);
-    stats.uniqueTrackings = grouped.size;
+    stats.uniqueTrackings = [...grouped.keys()].filter(k => !k.startsWith('__notracking_')).length;
 
     const consolidated: ConsolidatedRow[] = [];
     const removedRows: UPSInvoiceRow[] = [];
@@ -102,7 +105,7 @@ export function consolidateRows(
         'Account Number': getFirstNonEmpty(trackingRows, 'Account Number'),
         'Invoice Date': getFirstNonEmpty(trackingRows, 'Invoice Date'),
         'Invoice Number': getFirstNonEmpty(trackingRows, 'Invoice Number'),
-        'Tracking Number': trackingNum,
+        'Tracking Number': trackingNum.startsWith('__notracking_') ? '' : trackingNum,
         'Sender Postal': getFirstNonEmpty(trackingRows, 'Sender Postal'),
         'Receiver Postal': getFirstNonEmpty(trackingRows, 'Receiver Postal', {
           truncatePostal: true,

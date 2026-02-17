@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsUpDown, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsUpDown, X, Search } from 'lucide-react';
 import { getConsolidatedHeaders } from '@/lib/consolidation';
 
 interface CSVPreviewProps {
@@ -24,6 +24,7 @@ export default function CSVPreview({
   onColumnOrderChange,
 }: CSVPreviewProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [search, setSearch] = useState('');
   const [dragSourceIndex, setDragSourceIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -32,11 +33,12 @@ export default function CSVPreview({
 
   useEffect(() => {
     setCurrentPage(1);
+    setSearch('');
   }, [data]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [sortColumn, sortDirection]);
+  }, [sortColumn, sortDirection, search]);
 
   if (!data || data.length === 0) return null;
 
@@ -63,10 +65,16 @@ export default function CSVPreview({
     });
   })();
 
-  const totalPages = Math.ceil(sortedData.length / rowsPerPage);
+  const filteredData = search.trim()
+    ? sortedData.filter((row) =>
+        (row['Tracking Number'] ?? '').toLowerCase().includes(search.trim().toLowerCase())
+      )
+    : sortedData;
+
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = Math.min(startIndex + rowsPerPage, sortedData.length);
-  const currentData = sortedData.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + rowsPerPage, filteredData.length);
+  const currentData = filteredData.slice(startIndex, endIndex);
 
   const goToPage = (page: number) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
@@ -131,13 +139,13 @@ export default function CSVPreview({
   return (
     <div className="rounded-xl border border-border bg-surface overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-3.5 border-b border-border flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold text-ink-3 uppercase tracking-widest font-mono">
+      <div className="px-6 py-3.5 border-b border-border flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-xs font-semibold text-ink-3 uppercase tracking-widest font-mono shrink-0">
             Data Preview
           </span>
           {filterLabel && (
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-danger/10 border border-danger/25 text-danger text-xs font-mono">
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-danger/10 border border-danger/25 text-danger text-xs font-mono shrink-0">
               {filterLabel}
               {onClearFilter && (
                 <button
@@ -151,15 +159,40 @@ export default function CSVPreview({
             </div>
           )}
           {isDraggable && (
-            <span className="text-xs text-ink-3 font-mono">
+            <span className="text-xs text-ink-3 font-mono hidden sm:block">
               drag to reorder · click to sort
             </span>
           )}
         </div>
-        <span className="text-xs text-ink-2 font-mono">
-          {(startIndex + 1).toLocaleString()}–{endIndex.toLocaleString()} of{' '}
-          {sortedData.length.toLocaleString()} rows
-        </span>
+
+        <div className="flex items-center gap-3 shrink-0">
+          {/* Search input */}
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-ink-3 pointer-events-none" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search tracking #"
+              className="w-48 pl-7 pr-7 py-1.5 text-xs font-mono bg-surface-2 border border-border hover:border-border-strong focus:border-gold focus:outline-none rounded-md text-ink-1 placeholder:text-ink-3 transition-colors duration-150"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink-2 transition-colors"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
+          <span className="text-xs text-ink-2 font-mono">
+            {filteredData.length < sortedData.length
+              ? `${filteredData.length.toLocaleString()} of ${sortedData.length.toLocaleString()}`
+              : `${sortedData.length.toLocaleString()}`}{' '}
+            rows
+          </span>
+        </div>
       </div>
 
       {/* Table */}

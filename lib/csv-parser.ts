@@ -1,4 +1,5 @@
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 import { UPSInvoiceRow, ConsolidatedRow } from './types';
 import { getConsolidatedHeaders } from './consolidation';
 
@@ -83,6 +84,21 @@ export function exportCSV(data: ConsolidatedRow[], columnOrder?: string[]): stri
   });
 
   return csv;
+}
+
+/**
+ * Export consolidated data to XLSX and trigger browser download
+ */
+export function downloadXLSX(data: ConsolidatedRow[], columnOrder: string[], filename: string): void {
+  const headers = columnOrder.length > 0 ? columnOrder : getConsolidatedHeaders(data);
+  const rows = data.map((row) => headers.map((h) => row[h] || ''));
+
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Consolidated');
+
+  const xlsxFilename = filename.replace(/\.csv$/i, '.xlsx');
+  XLSX.writeFile(wb, xlsxFilename);
 }
 
 /**
