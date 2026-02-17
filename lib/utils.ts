@@ -15,9 +15,9 @@ export function parseDimensions(dimString: string): Dimensions {
 
   if (parts.length >= 3) {
     return {
-      length: formatAmount(parts[0]),
-      width: formatAmount(parts[1]),
-      height: formatAmount(parts[2]),
+      length: parts[0],
+      width: parts[1],
+      height: parts[2],
     };
   }
 

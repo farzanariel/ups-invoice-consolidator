@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsUpDown, X } from 'lucide-react';
 import { getConsolidatedHeaders } from '@/lib/consolidation';
 
 interface CSVPreviewProps {
@@ -12,6 +12,8 @@ interface CSVPreviewProps {
   columnOrder?: string[];
   onColumnOrderChange?: (order: string[]) => void;
 }
+
+type SortDirection = 'asc' | 'desc' | null;
 
 export default function CSVPreview({
   data,
@@ -24,12 +26,17 @@ export default function CSVPreview({
   const [currentPage, setCurrentPage] = useState(1);
   const [dragSourceIndex, setDragSourceIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-  // Ref mirrors dragSourceIndex for synchronous reads inside drop handler
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const dragSourceRef = useRef<number | null>(null);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [data]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortColumn, sortDirection]);
 
   if (!data || data.length === 0) return null;
 
@@ -39,13 +46,42 @@ export default function CSVPreview({
 
   const isDraggable = !filterLabel && !!onColumnOrderChange;
 
-  const totalPages = Math.ceil(data.length / rowsPerPage);
+  // Sort data
+  const sortedData = (() => {
+    if (!sortColumn || !sortDirection) return data;
+    return [...data].sort((a, b) => {
+      const aVal = a[sortColumn] ?? '';
+      const bVal = b[sortColumn] ?? '';
+      const aNum = parseFloat(aVal);
+      const bNum = parseFloat(bVal);
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+      }
+      return sortDirection === 'asc'
+        ? aVal.localeCompare(bVal)
+        : bVal.localeCompare(aVal);
+    });
+  })();
+
+  const totalPages = Math.ceil(sortedData.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = Math.min(startIndex + rowsPerPage, data.length);
-  const currentData = data.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + rowsPerPage, sortedData.length);
+  const currentData = sortedData.slice(startIndex, endIndex);
 
   const goToPage = (page: number) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const handleHeaderClick = (header: string) => {
+    if (sortColumn !== header) {
+      setSortColumn(header);
+      setSortDirection('asc');
+    } else if (sortDirection === 'asc') {
+      setSortDirection('desc');
+    } else {
+      setSortColumn(null);
+      setSortDirection(null);
+    }
   };
 
   const handleDragStart = (index: number) => {
@@ -86,6 +122,12 @@ export default function CSVPreview({
     return '';
   };
 
+  const SortIcon = ({ header }: { header: string }) => {
+    if (sortColumn !== header) return <ChevronsUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />;
+    if (sortDirection === 'asc') return <ChevronUp className="w-3 h-3 text-gold" />;
+    return <ChevronDown className="w-3 h-3 text-gold" />;
+  };
+
   return (
     <div className="rounded-xl border border-border bg-surface overflow-hidden">
       {/* Header */}
@@ -110,13 +152,13 @@ export default function CSVPreview({
           )}
           {isDraggable && (
             <span className="text-xs text-ink-3 font-mono">
-              drag columns to reorder
+              drag to reorder · click to sort
             </span>
           )}
         </div>
         <span className="text-xs text-ink-2 font-mono">
           {(startIndex + 1).toLocaleString()}–{endIndex.toLocaleString()} of{' '}
-          {data.length.toLocaleString()} rows
+          {sortedData.length.toLocaleString()} rows
         </span>
       </div>
 
@@ -133,17 +175,23 @@ export default function CSVPreview({
                   onDragOver={(e) => handleDragOver(e, i)}
                   onDrop={() => handleDrop(i)}
                   onDragEnd={handleDragEnd}
-                  className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap font-mono select-none transition-all duration-100 border-r border-border ${
-                    isDraggable ? 'cursor-grab active:cursor-grabbing' : ''
+                  onClick={() => handleHeaderClick(header)}
+                  className={`group px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap font-mono select-none transition-all duration-100 border-r border-border ${
+                    isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'
                   } ${
                     dragOverIndex === i && dragSourceIndex !== i
                       ? 'text-gold bg-gold/10'
                       : dragSourceIndex === i
                       ? 'text-ink-3 opacity-30'
+                      : sortColumn === header
+                      ? 'text-gold bg-gold/5 hover:bg-gold/10'
                       : 'text-ink-3 hover:bg-surface-2 hover:text-ink-2'
                   }`}
                 >
-                  {header}
+                  <span className="flex items-center gap-1">
+                    {header}
+                    <SortIcon header={header} />
+                  </span>
                 </th>
               ))}
             </tr>
@@ -159,7 +207,9 @@ export default function CSVPreview({
                 {headers.map((header, colIndex) => (
                   <td
                     key={`${startIndex + rowIndex}-${header}`}
-                    className={`px-4 py-2.5 text-xs text-ink-2 whitespace-nowrap font-mono transition-all duration-100 ${colClass(colIndex)}`}
+                    className={`px-4 py-2.5 text-xs whitespace-nowrap font-mono transition-all duration-100 ${
+                      sortColumn === header ? 'text-ink-1' : 'text-ink-2'
+                    } ${colClass(colIndex)}`}
                   >
                     {row[header] || (
                       <span className="text-ink-3">—</span>
