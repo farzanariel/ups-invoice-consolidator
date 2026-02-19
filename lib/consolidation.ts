@@ -117,7 +117,7 @@ export function consolidateRows(
         'Length': dimensions.length,
         'Width': dimensions.width,
         'Height': dimensions.height,
-        'Net Total': formatAmount(netTotal),
+        'Total Shipment Cost': formatAmount(netTotal),
       };
 
       stats.totalNetAmount += netTotal;
@@ -167,7 +167,7 @@ export function getConsolidatedHeaders(data: ConsolidatedRow[]): string[] {
     'Length',
     'Width',
     'Height',
-    'Net Total',
+    'Total Shipment Cost',
   ];
 
   if (data.length === 0) {

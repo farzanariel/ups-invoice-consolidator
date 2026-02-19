@@ -192,7 +192,7 @@ export default function Home() {
 
             <CSVPreview
               data={activeFilter === 'charges-removed' ? removedRows : consolidatedData}
-              filterLabel={activeFilter === 'charges-removed' ? 'Charges Removed' : undefined}
+              filterLabel={activeFilter === 'charges-removed' ? 'Rows Removed' : undefined}
               onClearFilter={activeFilter ? () => setActiveFilter(null) : undefined}
               columnOrder={columnOrder}
               onColumnOrderChange={setColumnOrder}

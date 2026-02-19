@@ -29,7 +29,7 @@ export interface ConsolidatedRow {
   'Length': string;
   'Width': string;
   'Height': string;
-  'Net Total': string;
+  'Total Shipment Cost': string;
   [key: string]: string; // Dynamic charge columns
 }
 

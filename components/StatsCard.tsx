@@ -34,7 +34,7 @@ export default function StatsCard({ stats, activeFilter, onFilterClick }: StatsC
       filter: null,
     },
     {
-      label: 'Charges Removed',
+      label: 'Rows Removed',
       value: stats.removedCharges.toLocaleString(),
       color: 'text-danger',
       filter: 'charges-removed',
