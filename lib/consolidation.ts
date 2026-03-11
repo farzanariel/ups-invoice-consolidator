@@ -182,6 +182,9 @@ export function getConsolidatedHeaders(data: ConsolidatedRow[]): string[] {
     'Width',
     'Height',
     'Total Shipment Cost',
+  ];
+
+  const addressHeaders = [
     'Sender Name',
     'Sender Company Name',
     'Sender Address Line 1',
@@ -199,7 +202,7 @@ export function getConsolidatedHeaders(data: ConsolidatedRow[]): string[] {
   ];
 
   if (data.length === 0) {
-    return baseHeaders;
+    return [...baseHeaders, ...addressHeaders];
   }
 
   // Collect all charge columns
@@ -239,5 +242,5 @@ export function getConsolidatedHeaders(data: ConsolidatedRow[]): string[] {
     return typeA - typeB;
   });
 
-  return [...baseHeaders, ...sortedChargeColumns];
+  return [...baseHeaders, ...sortedChargeColumns, ...addressHeaders];
 }

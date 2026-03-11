@@ -6,43 +6,46 @@ interface StatsCardProps {
   stats: ProcessingStats;
   activeFilter: string | null;
   onFilterClick: (filter: string | null) => void;
+  variant?: 'default' | 'neutral';
 }
 
-export default function StatsCard({ stats, activeFilter, onFilterClick }: StatsCardProps) {
+export default function StatsCard({ stats, activeFilter, onFilterClick, variant = 'default' }: StatsCardProps) {
   const reductionPct =
     stats.totalRows > 0
       ? Math.round((1 - stats.uniqueTrackings / stats.totalRows) * 100)
       : 0;
 
+  const neutral = variant === 'neutral';
+
   const items = [
     {
       label: 'Original Rows',
       value: stats.totalRows.toLocaleString(),
-      color: 'text-ink-2',
+      color: neutral ? 'text-ink-1' : 'text-ink-2',
       filter: null,
     },
     {
       label: 'Consolidated',
       value: stats.uniqueTrackings.toLocaleString(),
-      color: 'text-success',
+      color: neutral ? 'text-ink-1' : 'text-success',
       filter: null,
     },
     {
       label: 'Charges Kept',
       value: stats.keptCharges.toLocaleString(),
-      color: 'text-gold-text',
+      color: neutral ? 'text-ink-1' : 'text-gold-text',
       filter: null,
     },
     {
       label: 'Rows Removed',
       value: stats.removedCharges.toLocaleString(),
-      color: 'text-danger',
+      color: neutral ? 'text-ink-1' : 'text-danger',
       filter: 'charges-removed',
     },
     {
       label: 'Max / Tracking',
       value: stats.maxChargesPerTracking.toString(),
-      color: 'text-ink-2',
+      color: neutral ? 'text-ink-1' : 'text-ink-2',
       filter: null,
     },
     {
@@ -87,7 +90,7 @@ export default function StatsCard({ stats, activeFilter, onFilterClick }: StatsC
                   : ''
               } ${isActive ? 'bg-surface-2 ring-1 ring-inset ring-danger/30' : ''}`}
             >
-              <p className={`text-xl font-bold font-mono tabular-nums ${item.color}`}>
+              <p className={`text-lg sm:text-xl font-bold font-mono tabular-nums ${item.color}`}>
                 {item.value}
               </p>
               <p className="text-xs text-ink-3 mt-1.5 uppercase tracking-wider flex items-center gap-1.5">

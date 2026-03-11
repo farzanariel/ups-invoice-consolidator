@@ -197,8 +197,9 @@ export default function CSVPreview({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full">
+      <div className="relative">
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
           <thead>
             <tr className="border-b border-border bg-surface">
               {headers.map((header, i) => (
@@ -253,7 +254,10 @@ export default function CSVPreview({
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
+        {/* Mobile scroll affordance */}
+        <div className="sm:hidden absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-surface to-transparent pointer-events-none" />
       </div>
 
       {/* Pagination */}
@@ -262,7 +266,7 @@ export default function CSVPreview({
           <button
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage === 1}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-ink-2 border border-border rounded-md hover:border-border-strong hover:text-ink-1 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
+            className="flex items-center gap-1.5 px-4 py-2.5 sm:px-3 sm:py-1.5 text-xs font-medium text-ink-2 border border-border rounded-md hover:border-border-strong hover:text-ink-1 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150 min-h-[44px] sm:min-h-0"
           >
             <ChevronLeft className="w-3.5 h-3.5" />
             Previous
@@ -275,7 +279,7 @@ export default function CSVPreview({
           <button
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-ink-2 border border-border rounded-md hover:border-border-strong hover:text-ink-1 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
+            className="flex items-center gap-1.5 px-4 py-2.5 sm:px-3 sm:py-1.5 text-xs font-medium text-ink-2 border border-border rounded-md hover:border-border-strong hover:text-ink-1 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150 min-h-[44px] sm:min-h-0"
           >
             Next
             <ChevronRight className="w-3.5 h-3.5" />

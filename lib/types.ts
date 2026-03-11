@@ -80,3 +80,16 @@ export interface Charge {
   incentiveAmount: string;
   netAmount: string;
 }
+
+// Processed file result (multi-file support)
+export interface FileResult {
+  id: string;
+  filename: string;
+  originalData: UPSInvoiceRow[];
+  consolidatedData: ConsolidatedRow[];
+  removedRows: UPSInvoiceRow[];
+  columnOrder: string[];
+  stats: ProcessingStats;
+  warnings: string[];
+  isCollapsed: boolean;
+}

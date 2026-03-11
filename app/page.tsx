@@ -1,98 +1,171 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import FileUploader from '@/components/FileUploader';
 import ProcessingStatus from '@/components/ProcessingStatus';
 import ErrorAlert from '@/components/ErrorAlert';
 import StatsCard from '@/components/StatsCard';
-import CSVPreview from '@/components/CSVPreview';
 import DownloadButton from '@/components/DownloadButton';
+import CollapsibleFileResult from '@/components/CollapsibleFileResult';
 import { parseCSV } from '@/lib/csv-parser';
 import { validateCSV } from '@/lib/validation';
 import { consolidateRows, getConsolidatedHeaders } from '@/lib/consolidation';
-import { getConsolidatedFilename } from '@/lib/utils';
 import type {
-  UPSInvoiceRow,
-  ConsolidatedRow,
+  FileResult,
   ProcessingStats,
 } from '@/lib/types';
-import { RefreshCw, Package2, Sun, Moon } from 'lucide-react';
+import { RefreshCw, Package2, Plus, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/lib/theme';
 
 export default function Home() {
-  const [originalData, setOriginalData] = useState<UPSInvoiceRow[] | null>(null);
-  const [consolidatedData, setConsolidatedData] = useState<ConsolidatedRow[] | null>(null);
-  const [removedRows, setRemovedRows] = useState<UPSInvoiceRow[]>([]);
+  const [fileResults, setFileResults] = useState<FileResult[]>([]);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
-  const [columnOrder, setColumnOrder] = useState<string[]>([]);
-  const [stats, setStats] = useState<ProcessingStats | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [originalFilename, setOriginalFilename] = useState<string>('');
+  const addMoreInputRef = useRef<HTMLInputElement>(null);
   const { theme, toggleTheme } = useTheme();
 
-  const handleFileUpload = async (file: File) => {
+  const handleFilesUpload = async (files: File[]) => {
     setErrors([]);
     setWarnings([]);
-    setConsolidatedData(null);
-    setStats(null);
     setIsProcessing(true);
-    setOriginalFilename(file.name);
 
-    try {
-      const { data, error } = await parseCSV(file);
+    const newResults: FileResult[] = [];
+    const allErrors: string[] = [];
+    const allWarnings: string[] = [];
 
-      if (error) {
-        setErrors([error]);
-        setIsProcessing(false);
-        return;
+    for (const file of files) {
+      try {
+        const { data, error } = await parseCSV(file);
+
+        if (error) {
+          allErrors.push(`${file.name}: ${error}`);
+          continue;
+        }
+
+        const validation = validateCSV(data);
+
+        if (!validation.valid) {
+          allErrors.push(...validation.errors.map((e) => `${file.name}: ${e}`));
+          allWarnings.push(...validation.warnings.map((w) => `${file.name}: ${w}`));
+          continue;
+        }
+
+        if (validation.warnings.length > 0) {
+          allWarnings.push(...validation.warnings.map((w) => `${file.name}: ${w}`));
+        }
+
+        const { consolidated, removedRows, stats } = consolidateRows(data);
+
+        if (stats.status === 'error') {
+          allErrors.push(`${file.name}: ${stats.errorMessage || 'An error occurred during processing'}`);
+          continue;
+        }
+
+        newResults.push({
+          id: crypto.randomUUID(),
+          filename: file.name,
+          originalData: data,
+          consolidatedData: consolidated,
+          removedRows,
+          columnOrder: getConsolidatedHeaders(consolidated),
+          stats,
+          warnings: validation.warnings,
+          isCollapsed: false,
+        });
+      } catch (err) {
+        allErrors.push(`${file.name}: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`);
       }
-
-      setOriginalData(data);
-
-      const validation = validateCSV(data);
-
-      if (!validation.valid) {
-        setErrors(validation.errors);
-        setWarnings(validation.warnings);
-        setIsProcessing(false);
-        return;
-      }
-
-      if (validation.warnings.length > 0) {
-        setWarnings(validation.warnings);
-      }
-
-      const { consolidated, removedRows: removed, stats: processingStats } = consolidateRows(data);
-
-      if (processingStats.status === 'error') {
-        setErrors([processingStats.errorMessage || 'An error occurred during processing']);
-        setIsProcessing(false);
-        return;
-      }
-
-      setConsolidatedData(consolidated);
-      setRemovedRows(removed);
-      setColumnOrder(getConsolidatedHeaders(consolidated));
-      setStats(processingStats);
-      setIsProcessing(false);
-    } catch (err) {
-      setErrors([err instanceof Error ? err.message : 'An unexpected error occurred']);
-      setIsProcessing(false);
     }
+
+    if (allErrors.length > 0) setErrors(allErrors);
+    if (allWarnings.length > 0) setWarnings(allWarnings);
+
+    setFileResults((prev) => [...prev, ...newResults]);
+    setIsProcessing(false);
   };
 
   const handleReset = () => {
-    setOriginalData(null);
-    setConsolidatedData(null);
-    setRemovedRows([]);
+    setFileResults([]);
     setActiveFilter(null);
-    setStats(null);
     setErrors([]);
     setWarnings([]);
-    setOriginalFilename('');
   };
+
+  const toggleCollapse = (id: string) => {
+    setFileResults((prev) =>
+      prev.map((fr) =>
+        fr.id === id ? { ...fr, isCollapsed: !fr.isCollapsed } : fr
+      )
+    );
+  };
+
+  const updateColumnOrder = (id: string, columnOrder: string[]) => {
+    setFileResults((prev) =>
+      prev.map((fr) =>
+        fr.id === id ? { ...fr, columnOrder } : fr
+      )
+    );
+  };
+
+  const aggregatedStats = useMemo<ProcessingStats>(() => {
+    if (fileResults.length === 0) {
+      return {
+        totalRows: 0,
+        uniqueTrackings: 0,
+        originalCharges: 0,
+        keptCharges: 0,
+        removedCharges: 0,
+        maxChargesPerTracking: 0,
+        totalNetAmount: 0,
+        status: 'idle',
+      };
+    }
+
+    return fileResults.reduce<ProcessingStats>(
+      (acc, fr) => ({
+        totalRows: acc.totalRows + fr.stats.totalRows,
+        uniqueTrackings: acc.uniqueTrackings + fr.stats.uniqueTrackings,
+        originalCharges: acc.originalCharges + fr.stats.originalCharges,
+        keptCharges: acc.keptCharges + fr.stats.keptCharges,
+        removedCharges: acc.removedCharges + fr.stats.removedCharges,
+        maxChargesPerTracking: Math.max(acc.maxChargesPerTracking, fr.stats.maxChargesPerTracking),
+        totalNetAmount: acc.totalNetAmount + fr.stats.totalNetAmount,
+        status: 'success',
+      }),
+      {
+        totalRows: 0,
+        uniqueTrackings: 0,
+        originalCharges: 0,
+        keptCharges: 0,
+        removedCharges: 0,
+        maxChargesPerTracking: 0,
+        totalNetAmount: 0,
+        status: 'success',
+      }
+    );
+  }, [fileResults]);
+
+  const combinedData = useMemo(
+    () => fileResults.flatMap((fr) => fr.consolidatedData),
+    [fileResults]
+  );
+
+  const combinedColumnOrder = useMemo(
+    () => getConsolidatedHeaders(combinedData),
+    [combinedData]
+  );
+
+  const handleAddMoreFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleFilesUpload(Array.from(files));
+    }
+    e.target.value = '';
+  };
+
+  const hasResults = fileResults.length > 0;
 
   return (
     <div className="min-h-screen bg-body text-ink-1">
@@ -134,7 +207,7 @@ export default function Home() {
       {/* Main */}
       <main className="relative max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         {/* Upload state */}
-        {!consolidatedData && (
+        {!hasResults && (
           <div className="max-w-xl mx-auto">
             <div className="mb-8 sm:mb-10 text-center">
               <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-ink-1 leading-tight mb-3">
@@ -146,13 +219,13 @@ export default function Home() {
             </div>
 
             <FileUploader
-              onFileSelect={handleFileUpload}
+              onFileSelect={handleFilesUpload}
               isProcessing={isProcessing}
             />
 
             {isProcessing && (
               <div className="mt-4">
-                <ProcessingStatus message="Processing your CSV..." />
+                <ProcessingStatus message="Processing your CSVs..." />
               </div>
             )}
 
@@ -171,43 +244,77 @@ export default function Home() {
         )}
 
         {/* Results state */}
-        {consolidatedData && stats && (
-          <div className="space-y-5">
+        {hasResults && (
+          <div className="space-y-5 animate-fade-in">
             <StatsCard
-            stats={stats}
-            activeFilter={activeFilter}
-            onFilterClick={setActiveFilter}
-          />
+              stats={aggregatedStats}
+              activeFilter={activeFilter}
+              onFilterClick={setActiveFilter}
+            />
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <button
-                onClick={handleReset}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 hover:text-ink-1 border border-border hover:border-border-strong rounded-md transition-all duration-150 w-full sm:w-auto justify-center sm:justify-start"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Process Another File
-              </button>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  onClick={handleReset}
+                  className="flex items-center gap-2 px-4 py-2.5 sm:py-2 text-sm font-medium text-ink-2 hover:text-ink-1 border border-border hover:border-border-strong rounded-md transition-all duration-150 min-h-[44px] sm:min-h-0"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Reset
+                </button>
+                <button
+                  onClick={() => addMoreInputRef.current?.click()}
+                  disabled={isProcessing}
+                  className="flex items-center gap-2 px-4 py-2.5 sm:py-2 text-sm font-medium text-ink-2 hover:text-ink-1 border border-border hover:border-border-strong rounded-md transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Files
+                </button>
+                <input
+                  ref={addMoreInputRef}
+                  type="file"
+                  accept=".csv"
+                  multiple
+                  className="hidden"
+                  onChange={handleAddMoreFiles}
+                />
+              </div>
               <DownloadButton
-                data={consolidatedData}
-                filename={getConsolidatedFilename(originalFilename)}
-                columnOrder={columnOrder}
+                data={combinedData}
+                filename="consolidated_combined.csv"
+                columnOrder={combinedColumnOrder}
               />
             </div>
 
-            {errors.length > 0 && (
-              <ErrorAlert type="error" messages={errors} onDismiss={() => setErrors([])} />
-            )}
-            {warnings.length > 0 && (
-              <ErrorAlert type="warning" messages={warnings} onDismiss={() => setWarnings([])} />
+            {isProcessing && (
+              <ProcessingStatus message="Processing additional files..." />
             )}
 
-            <CSVPreview
-              data={activeFilter === 'charges-removed' ? removedRows : consolidatedData}
-              filterLabel={activeFilter === 'charges-removed' ? 'Rows Removed' : undefined}
-              onClearFilter={activeFilter ? () => setActiveFilter(null) : undefined}
-              columnOrder={columnOrder}
-              onColumnOrderChange={setColumnOrder}
-            />
+            {errors.length > 0 && (
+              <div className="animate-fade-in">
+                <ErrorAlert type="error" messages={errors} onDismiss={() => setErrors([])} />
+              </div>
+            )}
+            {warnings.length > 0 && (
+              <div className="animate-fade-in">
+                <ErrorAlert type="warning" messages={warnings} onDismiss={() => setWarnings([])} />
+              </div>
+            )}
+
+            {fileResults.map((fr, index) => (
+              <div
+                key={fr.id}
+                className="animate-fade-in"
+                style={{ animationDelay: `${index * 75}ms` }}
+              >
+                <CollapsibleFileResult
+                  fileResult={fr}
+                  activeFilter={activeFilter}
+                  isMultiFile={fileResults.length > 1}
+                  onToggleCollapse={() => toggleCollapse(fr.id)}
+                  onColumnOrderChange={(order) => updateColumnOrder(fr.id, order)}
+                />
+              </div>
+            ))}
           </div>
         )}
       </main>
