@@ -17,8 +17,8 @@ export default function ErrorAlert({ type, messages, onDismiss }: ErrorAlertProp
     <div
       className={`rounded-xl border p-4 ${
         isError
-          ? 'border-danger/30 bg-[rgba(248,113,113,0.05)]'
-          : 'border-gold/30 bg-[rgba(255,181,0,0.05)]'
+          ? 'border-danger/30 bg-danger/5'
+          : 'border-gold/30 bg-gold/5'
       }`}
     >
       <div className="flex items-start gap-3">
@@ -30,12 +30,12 @@ export default function ErrorAlert({ type, messages, onDismiss }: ErrorAlertProp
           {isError ? (
             <AlertCircle className="w-4 h-4 text-danger" />
           ) : (
-            <AlertTriangle className="w-4 h-4 text-gold" />
+            <AlertTriangle className="w-4 h-4 text-gold-text" />
           )}
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className={`text-sm font-semibold ${isError ? 'text-danger' : 'text-gold'}`}>
+          <h3 className={`text-sm font-semibold ${isError ? 'text-danger' : 'text-gold-text'}`}>
             {isError ? 'Error' : 'Warning'}
           </h3>
           <div className="mt-1.5 space-y-1">

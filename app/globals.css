@@ -1,35 +1,91 @@
 @import "tailwindcss";
 
+/* ── Base tokens (overrideable) ── */
+:root {
+  --c-gold: #ffb500;
+  --c-gold-bright: #ffc933;
+  --c-gold-text: #ffb500;
+
+  --c-surface: #111111;
+  --c-surface-2: #181818;
+  --c-surface-3: #222222;
+
+  --c-border: #252525;
+  --c-border-strong: #3a3a3a;
+
+  --c-ink-1: #f0f0f0;
+  --c-ink-2: #c0c0c0;
+  --c-ink-3: #909090;
+
+  --c-success: #4ade80;
+  --c-danger: #f87171;
+  --c-caution: #fbbf24;
+
+  --c-body: #0a0a0a;
+  --c-dot-grid: #1c1c1c;
+  --c-table-stripe: #0d0d0d;
+}
+
+/* ── Light mode overrides ── */
+html.light {
+  color-scheme: light;
+
+  --c-gold: #ffb500;
+  --c-gold-bright: #ffc933;
+  --c-gold-text: #b07c00;
+
+  --c-surface: #ffffff;
+  --c-surface-2: #f5f5f5;
+  --c-surface-3: #ebebeb;
+
+  --c-border: #e2e2e2;
+  --c-border-strong: #cbcbcb;
+
+  --c-ink-1: #1a1a1a;
+  --c-ink-2: #555555;
+  --c-ink-3: #767676;
+
+  --c-success: #15803d;
+  --c-danger: #dc2626;
+  --c-caution: #d97706;
+
+  --c-body: #f7f7f8;
+  --c-dot-grid: #e5e5e5;
+  --c-table-stripe: #f9f9f9;
+}
+
+/* ── Tailwind theme (references overrideable tokens) ── */
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Brand */
-  --color-gold: #ffb500;
-  --color-gold-bright: #ffc933;
+  --color-gold: var(--c-gold);
+  --color-gold-bright: var(--c-gold-bright);
+  --color-gold-text: var(--c-gold-text);
 
-  /* Surfaces */
-  --color-surface: #111111;
-  --color-surface-2: #181818;
-  --color-surface-3: #222222;
+  --color-surface: var(--c-surface);
+  --color-surface-2: var(--c-surface-2);
+  --color-surface-3: var(--c-surface-3);
 
-  /* Borders */
-  --color-border: #252525;
-  --color-border-strong: #3a3a3a;
+  --color-border: var(--c-border);
+  --color-border-strong: var(--c-border-strong);
 
-  /* Text */
-  --color-ink-1: #f0f0f0;
-  --color-ink-2: #c0c0c0;
-  --color-ink-3: #909090;
+  --color-ink-1: var(--c-ink-1);
+  --color-ink-2: var(--c-ink-2);
+  --color-ink-3: var(--c-ink-3);
 
-  /* Status */
-  --color-success: #4ade80;
-  --color-danger: #f87171;
-  --color-caution: #fbbf24;
+  --color-success: var(--c-success);
+  --color-danger: var(--c-danger);
+  --color-caution: var(--c-caution);
+
+  --color-body: var(--c-body);
+  --color-dot-grid: var(--c-dot-grid);
+  --color-table-stripe: var(--c-table-stripe);
 }
 
 * {
   box-sizing: border-box;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, fill 0.2s ease, stroke 0.2s ease;
 }
 
 html {
@@ -37,8 +93,8 @@ html {
 }
 
 body {
-  background: #0a0a0a;
-  color: #f0f0f0;
+  background: var(--c-body);
+  color: var(--c-ink-1);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -50,12 +106,12 @@ body {
   height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #111;
+  background: var(--c-surface);
 }
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--c-surface-3);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--c-border-strong);
 }

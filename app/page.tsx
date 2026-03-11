@@ -16,7 +16,8 @@ import type {
   ConsolidatedRow,
   ProcessingStats,
 } from '@/lib/types';
-import { RefreshCw, Package2 } from 'lucide-react';
+import { RefreshCw, Package2, Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/lib/theme';
 
 export default function Home() {
   const [originalData, setOriginalData] = useState<UPSInvoiceRow[] | null>(null);
@@ -29,6 +30,7 @@ export default function Home() {
   const [warnings, setWarnings] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [originalFilename, setOriginalFilename] = useState<string>('');
+  const { theme, toggleTheme } = useTheme();
 
   const handleFileUpload = async (file: File) => {
     setErrors([]);
@@ -93,12 +95,12 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-ink-1">
+    <div className="min-h-screen bg-body text-ink-1">
       {/* Dot grid background */}
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
-          backgroundImage: 'radial-gradient(circle, #1c1c1c 1px, transparent 1px)',
+          backgroundImage: 'radial-gradient(circle, var(--c-dot-grid) 1px, transparent 1px)',
           backgroundSize: '28px 28px',
         }}
       />
@@ -107,16 +109,25 @@ export default function Home() {
       <header className="relative border-b border-border">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-[#351c15] rounded flex items-center justify-center">
-              <Package2 className="w-4 h-4 text-gold" strokeWidth={2.5} />
+            <div className="w-7 h-7 bg-gold/15 rounded flex items-center justify-center">
+              <Package2 className="w-4 h-4 text-gold-text" strokeWidth={2.5} />
             </div>
             <span className="font-semibold text-ink-1 tracking-tight text-sm">
               Invoice Consolidator
             </span>
           </div>
-          <span className="text-xs text-ink-3 font-mono hidden sm:block">
-            Processing happens entirely in your browser
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-ink-3 font-mono hidden sm:block">
+              Processing happens entirely in your browser
+            </span>
+            <button
+              onClick={toggleTheme}
+              className="w-8 h-8 flex items-center justify-center rounded-md border border-border hover:border-border-strong hover:bg-surface-2 text-ink-3 hover:text-ink-1 transition-all duration-150"
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -127,7 +138,7 @@ export default function Home() {
           <div className="max-w-xl mx-auto">
             <div className="mb-8 sm:mb-10 text-center">
               <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-ink-1 leading-tight mb-3">
-                UPS Invoice <span className="text-gold">Consolidator</span>
+                UPS Invoice <span className="text-gold-text">Consolidator</span>
               </h1>
               <p className="text-ink-2 text-base sm:text-lg leading-relaxed">
                 Merge duplicate tracking rows into clean, single-row records.

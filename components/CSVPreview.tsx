@@ -132,8 +132,8 @@ export default function CSVPreview({
 
   const SortIcon = ({ header }: { header: string }) => {
     if (sortColumn !== header) return <ChevronsUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />;
-    if (sortDirection === 'asc') return <ChevronUp className="w-3 h-3 text-gold" />;
-    return <ChevronDown className="w-3 h-3 text-gold" />;
+    if (sortDirection === 'asc') return <ChevronUp className="w-3 h-3 text-gold-text" />;
+    return <ChevronDown className="w-3 h-3 text-gold-text" />;
   };
 
   return (
@@ -214,11 +214,11 @@ export default function CSVPreview({
                     isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'
                   } ${
                     dragOverIndex === i && dragSourceIndex !== i
-                      ? 'text-gold bg-gold/10'
+                      ? 'text-gold-text bg-gold/10'
                       : dragSourceIndex === i
                       ? 'text-ink-3 opacity-30'
                       : sortColumn === header
-                      ? 'text-gold bg-gold/5 hover:bg-gold/10'
+                      ? 'text-gold-text bg-gold/5 hover:bg-gold/10'
                       : 'text-ink-3 hover:bg-surface-2 hover:text-ink-2'
                   }`}
                 >
@@ -235,7 +235,7 @@ export default function CSVPreview({
               <tr
                 key={startIndex + rowIndex}
                 className={`border-b border-border/50 transition-colors duration-100 ${
-                  rowIndex % 2 === 0 ? 'bg-[#0d0d0d]' : 'bg-surface'
+                  rowIndex % 2 === 0 ? 'bg-table-stripe' : 'bg-surface'
                 } ${dragSourceIndex === null ? 'hover:bg-surface-2' : ''}`}
               >
                 {headers.map((header, colIndex) => (

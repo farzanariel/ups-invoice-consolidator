@@ -30,6 +30,20 @@ export interface ConsolidatedRow {
   'Width': string;
   'Height': string;
   'Total Shipment Cost': string;
+  'Sender Name': string;
+  'Sender Company Name': string;
+  'Sender Address Line 1': string;
+  'Sender Address Line 2': string;
+  'Sender City': string;
+  'Sender State': string;
+  'Sender Country/Territory': string;
+  'Receiver Name': string;
+  'Receiver Company Name': string;
+  'Receiver Address Line 1': string;
+  'Receiver Address Line 2': string;
+  'Receiver City': string;
+  'Receiver State': string;
+  'Receiver Country/Territory': string;
   [key: string]: string; // Dynamic charge columns
 }
 

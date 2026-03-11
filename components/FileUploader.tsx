@@ -43,7 +43,7 @@ export default function FileUploader({
         }
         ${disabled || isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
       `}
-      style={isDragActive ? { boxShadow: '0 0 0 1px #ffb500, 0 0 24px rgba(255,181,0,0.12)' } : {}}
+      style={isDragActive ? { boxShadow: '0 0 0 1px var(--c-gold), 0 0 24px color-mix(in srgb, var(--c-gold) 12%, transparent)' } : {}}
     >
       <input {...getInputProps()} />
 
@@ -55,11 +55,11 @@ export default function FileUploader({
           }`}
         >
           {isProcessing ? (
-            <Loader2 className="w-7 h-7 text-gold animate-spin" />
+            <Loader2 className="w-7 h-7 text-gold-text animate-spin" />
           ) : (
             <FileSpreadsheet
               className={`w-7 h-7 transition-colors duration-200 ${
-                isDragActive ? 'text-gold' : 'text-ink-2'
+                isDragActive ? 'text-gold-text' : 'text-ink-2'
               }`}
             />
           )}
@@ -70,7 +70,7 @@ export default function FileUploader({
           {isProcessing ? (
             <p className="font-medium text-ink-1">Processing your file…</p>
           ) : isDragActive ? (
-            <p className="font-semibold text-gold">Drop to process</p>
+            <p className="font-semibold text-gold-text">Drop to process</p>
           ) : (
             <>
               <p className="font-medium text-ink-1">
@@ -78,7 +78,7 @@ export default function FileUploader({
               </p>
               <p className="text-sm text-ink-2">
                 or{' '}
-                <span className="text-gold underline underline-offset-2 cursor-pointer">
+                <span className="text-gold-text underline underline-offset-2 cursor-pointer">
                   click to browse
                 </span>
               </p>

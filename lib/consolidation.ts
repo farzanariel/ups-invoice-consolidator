@@ -118,6 +118,20 @@ export function consolidateRows(
         'Width': dimensions.width,
         'Height': dimensions.height,
         'Total Shipment Cost': formatAmount(netTotal),
+        'Sender Name': getFirstNonEmpty(trackingRows, 'Sender Name'),
+        'Sender Company Name': getFirstNonEmpty(trackingRows, 'Sender Company Name'),
+        'Sender Address Line 1': getFirstNonEmpty(trackingRows, 'Sender Address Line 1'),
+        'Sender Address Line 2': getFirstNonEmpty(trackingRows, 'Sender Address Line 2'),
+        'Sender City': getFirstNonEmpty(trackingRows, 'Sender City'),
+        'Sender State': getFirstNonEmpty(trackingRows, 'Sender State'),
+        'Sender Country/Territory': getFirstNonEmpty(trackingRows, 'Sender Country/Territory'),
+        'Receiver Name': getFirstNonEmpty(trackingRows, 'Receiver Name'),
+        'Receiver Company Name': getFirstNonEmpty(trackingRows, 'Receiver Company Name'),
+        'Receiver Address Line 1': getFirstNonEmpty(trackingRows, 'Receiver Address Line 1'),
+        'Receiver Address Line 2': getFirstNonEmpty(trackingRows, 'Receiver Address Line 2'),
+        'Receiver City': getFirstNonEmpty(trackingRows, 'Receiver City'),
+        'Receiver State': getFirstNonEmpty(trackingRows, 'Receiver State'),
+        'Receiver Country/Territory': getFirstNonEmpty(trackingRows, 'Receiver Country/Territory'),
       };
 
       stats.totalNetAmount += netTotal;
@@ -168,6 +182,20 @@ export function getConsolidatedHeaders(data: ConsolidatedRow[]): string[] {
     'Width',
     'Height',
     'Total Shipment Cost',
+    'Sender Name',
+    'Sender Company Name',
+    'Sender Address Line 1',
+    'Sender Address Line 2',
+    'Sender City',
+    'Sender State',
+    'Sender Country/Territory',
+    'Receiver Name',
+    'Receiver Company Name',
+    'Receiver Address Line 1',
+    'Receiver Address Line 2',
+    'Receiver City',
+    'Receiver State',
+    'Receiver Country/Territory',
   ];
 
   if (data.length === 0) {

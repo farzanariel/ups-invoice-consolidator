@@ -30,7 +30,7 @@ export default function StatsCard({ stats, activeFilter, onFilterClick }: StatsC
     {
       label: 'Charges Kept',
       value: stats.keptCharges.toLocaleString(),
-      color: 'text-gold',
+      color: 'text-gold-text',
       filter: null,
     },
     {
