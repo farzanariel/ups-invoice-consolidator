@@ -106,6 +106,7 @@ export function consolidateRows(
         'Invoice Date': getFirstNonEmpty(trackingRows, 'Invoice Date'),
         'Invoice Number': getFirstNonEmpty(trackingRows, 'Invoice Number'),
         'Tracking Number': trackingNum.startsWith('__notracking_') ? '' : trackingNum,
+        'Zone': getFirstNonEmpty(trackingRows, 'Zone'),
         'Sender Postal': getFirstNonEmpty(trackingRows, 'Sender Postal'),
         'Receiver Postal': getFirstNonEmpty(trackingRows, 'Receiver Postal', {
           truncatePostal: true,
@@ -174,6 +175,7 @@ export function getConsolidatedHeaders(data: ConsolidatedRow[]): string[] {
     'Invoice Date',
     'Invoice Number',
     'Tracking Number',
+    'Zone',
     'Sender Postal',
     'Receiver Postal',
     'Billed Weight',

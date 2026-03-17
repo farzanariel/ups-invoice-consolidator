@@ -5,6 +5,7 @@ export interface UPSInvoiceRow {
   'Invoice Number': string;
   'Tracking Number': string;
   'Lead Shipment Number': string;
+  'Zone': string;
   'Sender Postal': string;
   'Receiver Postal': string;
   'Billed Weight': string;
@@ -22,6 +23,7 @@ export interface ConsolidatedRow {
   'Invoice Date': string;
   'Invoice Number': string;
   'Tracking Number': string;
+  'Zone': string;
   'Sender Postal': string;
   'Receiver Postal': string;
   'Billed Weight': string;
