@@ -168,7 +168,7 @@ export default function Home() {
   const hasResults = fileResults.length > 0;
 
   return (
-    <div className="min-h-screen bg-body text-ink-1">
+    <div className="flex min-h-screen flex-col bg-body text-ink-1">
       {/* Dot grid background */}
       <div
         className="fixed inset-0 pointer-events-none"
@@ -205,7 +205,7 @@ export default function Home() {
       </header>
 
       {/* Main */}
-      <main className="relative max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+      <main className="relative w-full max-w-6xl mx-auto flex-1 px-4 sm:px-6 py-10 sm:py-16">
         {/* Upload state */}
         {!hasResults && (
           <div className="max-w-xl mx-auto">
@@ -320,7 +320,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="relative border-t border-border mt-16">
+      <footer className="relative border-t border-border">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
           <span className="text-xs text-ink-3 font-mono">UPS Invoice Consolidator</span>
           <div className="flex items-center gap-4">
